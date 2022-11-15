@@ -11,13 +11,34 @@ class NDArray {
         NDArray(std::vector<int> shape);
         NDArray(std::vector<int> shape, std::vector<T> data);
         ~NDArray();
-        T& operator[](std::vector<int> index);
-        NDArray<T> operator[](int index);
+        const T& operator[](const std::vector<int> index) const;
+        NDArray<T> operator[](int index) const;
         // print the array
         friend std::ostream& operator<<(std::ostream& os, const NDArray<T>& arr) {
-            os << arr.str();
+            os << arr.str(0);
             return os;
         }
+
+        // equals
+        NDArray<T>& operator=(const NDArray<T>& other);
+
+        // set a value
+        void set(const std::vector<int> index, T value);
+
+        // add two arrays
+        NDArray<T> operator+(const NDArray<T>& arr);
+        // subtract two arrays
+        NDArray<T> operator-(const NDArray<T>& arr);
+
+        // multiply two arrays
+        NDArray<T> operator*(const NDArray<T>& arr);
+
+        // tensor product of two arrays
+        NDArray<T> matMult(const NDArray<T>& arr);
+
+        // expand the array by one dimension
+        NDArray<T> expandDims(int axis);
+
         int size();
         int size(int dim);
         int rank();
@@ -30,14 +51,10 @@ class NDArray {
         void resize(int size, int dim, T value);
         void resize(int size, int dim, T value, bool copy);
         void resize(int size, int dim, bool copy);
-        void resize(int size, T value);
-        void resize(int size, T value, bool copy);
         void resize(int size, bool copy);
         void resize(std::vector<int> shape, T value);
         void resize(std::vector<int> shape, T value, bool copy);
         void resize(std::vector<int> shape, bool copy);
-        void resize(T value);
-        void resize(T value, bool copy);
         void resize(bool copy);
         void fill(T value);
         void fill(T value, bool copy);
@@ -45,9 +62,9 @@ class NDArray {
         void copy(NDArray<T> &other);
 
         // return a string representation of the array
-        std::string str();
-        std::string str() const;
+        std::string str(int index) const;
         void random();
+        void random(T min, T max);
 
     private:
         std::vector<T> data;
@@ -86,6 +103,7 @@ NDArray<T>::NDArray(std::vector<int> shape, std::vector<T> data) {
     }
     size_ *= shape_[0];
     this->data = data;
+    
 }
 
 template <typename T>
@@ -95,8 +113,9 @@ NDArray<T>::~NDArray() {
     strides_.clear();
 }
 
+
 template <typename T>
-T& NDArray<T>::operator[](std::vector<int> index) {
+const T& NDArray<T>::operator[](const std::vector<int> index) const{
     int offset = 0;
     for (int i = 0; i < rank_; i++) {
         offset += index[i] * strides_[i];
@@ -105,62 +124,140 @@ T& NDArray<T>::operator[](std::vector<int> index) {
 }
 
 template <typename T>
-NDArray<T> NDArray<T>::operator[](int index) {
+NDArray<T> NDArray<T>::operator[](int index) const{
     std::vector<int> new_shape(shape_.begin() + 1, shape_.end());
     std::vector<T> new_data(data.begin() + index * strides_[0], data.begin() + (index + 1) * strides_[0]);
     return NDArray<T>(new_shape, new_data);
 }
 
 template <typename T>
-std::string NDArray<T>::str() {
-    // recursively print the array
-    std::stringstream ss;
-    if (rank_ == 1) {
-        ss << "[";
-        for (int i = 0; i < size_; i++) {
-            ss << data[i];
-            if (i < size_ - 1) {
-                ss << ", ";
-            }
-        }
-        ss << "]";
-    } else {
-        ss << "[";
-        for (int i = 0; i < shape_[0]; i++) {
-            ss << NDArray<T>(std::vector<int>(shape_.begin() + 1, shape_.end()), data).str();
-            if (i < shape_[0] - 1) {
-                ss << ", ";
-            }
-        }
-        ss << "]";
+NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
+    this->data = other.data;
+    this->shape_ = other.shape_;
+    this->strides_ = other.strides_;
+    this->size_ = other.size_;
+    this->rank_ = other.rank_;
+    return *this;
+}
+
+
+template <typename T>
+NDArray<T> NDArray<T>::operator+(const NDArray<T>& arr) {
+    // check if the shapes are the same
+    if (shape_ != arr.shape_) {
+        throw std::invalid_argument("Shapes are not the same");
     }
-    return ss.str();
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] + arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
 }
 
 template <typename T>
-std::string NDArray<T>::str() const {
-    // recursively print the array
-    std::stringstream ss;
-    if (rank_ == 1) {
-        ss << "[";
-        for (int i = 0; i < size_; i++) {
-            ss << data[i];
-            if (i < size_ - 1) {
-                ss << ", ";
-            }
-        }
-        ss << "]";
-    } else {
-        ss << "[";
-        for (int i = 0; i < shape_[0]; i++) {
-            ss << NDArray<T>(std::vector<int>(shape_.begin() + 1, shape_.end()), data).str();
-            if (i < shape_[0] - 1) {
-                ss << ", ";
-            }
-        }
-        ss << "]";
+NDArray<T> NDArray<T>::operator-(const NDArray<T>& arr) {
+    // check if the shapes are the same
+    if (shape_ != arr.shape_) {
+        throw std::invalid_argument("Shapes are not the same");
     }
-    return ss.str();
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] - arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator*(const NDArray<T>& arr) {
+    // check if the shapes are the same
+    if (shape_ != arr.shape_) {
+        throw std::invalid_argument("Shapes are not the same");
+    }
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] * arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+void NDArray<T>::set(std::vector<int> index, T value) {
+    int offset = 0;
+    for (int i = 0; i < rank_; i++) {
+        offset += index[i] * strides_[i];
+    }
+    data[offset] = value;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::matMult(const NDArray<T>& arr) {
+    // Matrix multiplication
+    // check if the shapes make sense
+    if (shape_[1] != arr.shape_[0]) {
+        throw std::invalid_argument("Shapes are not compatible");
+    }
+    std::vector<int> new_shape = {shape_[0], arr.shape_[1]};
+    std::vector<T> new_data(new_shape[0] * new_shape[1]);
+    for (int i = 0; i < new_shape[0]; i++) {
+        for (int j = 0; j < new_shape[1]; j++) {
+            T sum = 0;
+            for (int k = 0; k < shape_[1]; k++) {
+                sum += (*this)[{i, k}] * arr[{k, j}];
+            }
+            new_data[i * new_shape[1] + j] = sum;
+        }
+    }
+    return NDArray<T>(new_shape, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::expandDims(int axis) {
+    // expand the dimension of the array
+    // axis = -1 means the last dimension
+    if (axis < -1 || axis > shape_.size()) {
+        throw std::invalid_argument("Axis is out of range");
+    }
+    if (axis == -1) {
+        axis = shape_.size();
+    }
+    std::vector<int> new_shape = shape_;
+    new_shape.insert(new_shape.begin() + axis, 1);
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i];
+    }
+    return NDArray<T>(new_shape, new_data);
+}
+
+
+template <typename T>
+std::string NDArray<T>::str(int index) const {
+    // recursively print the array depending on the index
+    std::stringstream str;
+    if (rank_ == 1) {
+        str << "[";
+        // print data in the array until index
+        for (int i = 0; i < data.size(); i++) {
+            if(i == data.size() - 1) {
+                str << data[i];
+            }
+            else {
+                str << data[i] << ", ";
+            }
+        }
+        str << "]";
+    }
+    else {
+        str << "[";
+        for (int i = 0; i < shape_[index]; i++) {
+            str << (*this)[i].str(index + 1);
+            if (i != shape_[index] - 1) {
+                str << ", ";
+            }
+        }
+        str << "]";
+    }
+    return str.str();
 }
 
 template <typename T>
@@ -287,15 +384,7 @@ void NDArray<T>::resize(int size, int dim, bool copy) {
     size_ = size;
 }
 
-template <typename T>
-void NDArray<T>::resize(T value) {
-    data.resize(size_, value);
-}
 
-template <typename T>
-void NDArray<T>::resize(T value, bool copy) {
-    data.resize(size_, value);
-}
 
 template <typename T>
 void NDArray<T>::resize(bool copy) {
@@ -356,15 +445,6 @@ void NDArray<T>::resize(std::vector<int> shape, bool copy) {
     size_ = size;
 }
 
-template <typename T>
-void NDArray<T>::resize(int size, T value) {
-    data.resize(size, value);
-}
-
-template <typename T>
-void NDArray<T>::resize(int size, T value, bool copy) {
-    data.resize(size, value);
-}
 
 template <typename T>
 void NDArray<T>::resize(int size, bool copy) {
@@ -400,6 +480,17 @@ void NDArray<T>::random() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0, 1);
+    for (int i = 0; i < size_; i++) {
+        data[i] = dis(gen);
+    }
+}
+
+template <typename T>
+void NDArray<T>::random(T min, T max) {
+    // fill with random values
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(min, max);
     for (int i = 0; i < size_; i++) {
         data[i] = dis(gen);
     }

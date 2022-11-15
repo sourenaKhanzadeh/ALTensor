@@ -4,12 +4,15 @@
 
 int main() {
 
-    NDArray<double> x({2, 3, 4, 2});
+    NDArray<int> x({2, 2});
+    NDArray<int> y({2, 3});
 
-    x.random();
+    y.fill(1);
+    x.random(10, 20);
+    x.set({1, 0}, 100);
 
-    std::cout << x << std::endl;
-    std::cout << x[0][0][0] << std::endl;
+    std::cout << "x = " << x << std::endl;
+    std::cout << x.matMult(y) << std::endl;
 
     return 0;
 }
