@@ -27,6 +27,13 @@ class NDArray {
 
         // add two arrays
         NDArray<T> operator+(const NDArray<T>& arr);
+
+        // add a scalar
+        NDArray<T> operator+(const T scalar);
+
+        // subtract a scaler
+        NDArray<T> operator-(const T scalar);
+
         // subtract two arrays
         NDArray<T> operator-(const NDArray<T>& arr);
 
@@ -79,6 +86,7 @@ class NDArray {
         void random(T min, T max);
         void transpose();
         void flatten();
+        std::vector<T> toVector();
 
     private:
         std::vector<T> data;
@@ -169,6 +177,15 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& arr) {
 }
 
 template <typename T>
+NDArray<T> NDArray<T>::operator+(const T scalar) {
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] + scalar;
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
 NDArray<T> NDArray<T>::operator-(const NDArray<T>& arr) {
     // check if the shapes are the same
     if (shape_ != arr.shape_) {
@@ -177,6 +194,15 @@ NDArray<T> NDArray<T>::operator-(const NDArray<T>& arr) {
     std::vector<T> new_data(size_);
     for (int i = 0; i < size_; i++) {
         new_data[i] = data[i] - arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator-(const T scalar) {
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] - scalar;
     }
     return NDArray<T>(shape_, new_data);
 }
@@ -576,6 +602,11 @@ void NDArray<T>::random(T min, T max) {
     for (int i = 0; i < size_; i++) {
         data[i] = dis(gen);
     }
+}
+
+template <typename T>
+std::vector<T> NDArray<T>::toVector() {
+    return data;
 }
 
 template <typename T>

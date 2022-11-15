@@ -4,20 +4,17 @@
 
 int main() {
 
-    ndarray<int> x({1, 2, 3});
-    ndarray<int> y({1, 2, 3});
+    ndarray<float> x({1, 2, 3});
+    ndarray<float> y({1, 2, 3});
 
-    y.fill(1);
+    y.fill(1.f);
     x.random(10, 20);
 
 
     std::cout << "x = " << x << std::endl;
-    std::cout << "y = " << y << std::endl;
-    std::cout << "x + y = " << x + y << std::endl;
-    std::cout << "x - y = " << x - y << std::endl;
-    std::cout << "x * y = " << x * y << std::endl;
-    std::cout << "x / y = " << x / y << std::endl;
-    std::cout << "x / 2 = " << x / 2 << std::endl;
-    std::cout << "x * 2 = " << x * 2 << std::endl;
+    std::cout << "square(x)" << square(x) << std::endl;
+    std::cout << "deriv(square, x)" << deriv(square, x) << std::endl;
+    std::cout << "relu(x)" << relu(x) << std::endl;
+    std::cout << "deriv(relu, x)" << deriv(relu, x) << std::endl;
     return 0;
 }
