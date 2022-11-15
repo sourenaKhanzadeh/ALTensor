@@ -68,8 +68,8 @@ class NDArray {
         std::string str(int index) const;
         void random();
         void random(T min, T max);
-        NDArray<T> transpose();
-        NDArray<T> flatten();
+        void transpose();
+        void flatten();
 
     private:
         std::vector<T> data;
@@ -245,13 +245,6 @@ NDArray<T> NDArray<T>::tensProd(const NDArray<T>& arr) {
 template <typename T>
 NDArray<T> NDArray<T>::expandDims(int axis) {
     // expand the dimension of the array
-    // axis = -1 means the last dimension
-    if (axis < -1 || axis > shape_.size()) {
-        throw std::invalid_argument("Axis is out of range");
-    }
-    if (axis == -1) {
-        axis = shape_.size();
-    }
     std::vector<int> new_shape = shape_;
     new_shape.insert(new_shape.begin() + axis, 1);
     std::vector<T> new_data(size_);
@@ -281,10 +274,12 @@ std::string NDArray<T>::str(int index) const {
     }
     else {
         str << "[";
-        for (int i = 0; i < shape_[index]; i++) {
-            str << (*this)[i].str(index + 1);
-            if (i != shape_[index] - 1) {
-                str << ", ";
+        for (int i = 0; i < shape_[0]; i++) {
+            if (i == shape_[0] - 1) {
+                str << (*this)[i].str(index + 1);
+            }
+            else {
+                str << (*this)[i].str(index + 1) << ", ";
             }
         }
         str << "]";
@@ -507,24 +502,18 @@ void NDArray<T>::copy(NDArray<T> &other) {
 }
 
 template <typename T>
-NDArray<T> NDArray<T>::flatten() {
-    NDArray<T> result({size_});
-    for (int i = 0; i < size_; i++) {
-        result.data[i] = data[i];
-    }
-    return result;
+void NDArray<T>::flatten() {
+    rank_ = 1;
+    shape_ = {size_};
+    strides_ = {1};
 }
 
 template <typename T>
-NDArray<T> NDArray<T>::transpose() {
-    // reverse the shape
-    std::vector<int> new_shape = shape_;
-    std::reverse(new_shape.begin(), new_shape.end());
-    NDArray<T> result(new_shape);
-    for (int i = 0; i < size_; i++) {
-        result.data[i] = data[i];
-    }
-    return result;
+void NDArray<T>::transpose() {
+    // reverse the shape and strides
+    std::reverse(shape_.begin(), shape_.end());
+    std::reverse(strides_.begin(), strides_.end());
+
 }
 
 template <typename T>

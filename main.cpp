@@ -12,6 +12,9 @@ int main() {
 
 
     std::cout << "x = " << x << std::endl;
+    x.transpose();
+    std::cout << "x = " << x << std::endl;
+    x.flatten();
     std::cout << "x = " << x << std::endl;
     return 0;
 }
