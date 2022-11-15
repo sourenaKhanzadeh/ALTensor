@@ -538,4 +538,7 @@ void NDArray<T>::random(T min, T max) {
     }
 }
 
+template <typename T>
+using ndarray = NDArray<T>;
+
 #endif
