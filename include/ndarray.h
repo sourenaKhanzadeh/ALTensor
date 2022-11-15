@@ -33,8 +33,17 @@ class NDArray {
         // multiply two arrays
         NDArray<T> operator*(const NDArray<T>& arr);
 
+        // multiply scalar
+        NDArray<T> operator*(const T scalar);
+
         // tensor product of two arrays
         NDArray<T> matMult(const NDArray<T>& arr);
+
+        // divide two arrays
+        NDArray<T> operator/(const NDArray<T>& arr);
+
+        // divide a scalar to an array
+        NDArray<T> operator/(T scalar);
 
         // tensor product of two arrays
         NDArray<T> tensProd(const NDArray<T>& arr);
@@ -181,6 +190,37 @@ NDArray<T> NDArray<T>::operator*(const NDArray<T>& arr) {
     std::vector<T> new_data(size_);
     for (int i = 0; i < size_; i++) {
         new_data[i] = data[i] * arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator/(const NDArray<T>& arr) {
+    // check if the shapes are the same
+    if (shape_ != arr.shape_) {
+        throw std::invalid_argument("Shapes are not the same");
+    }
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] / arr.data[i];
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator*(const T value) {
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] * value;
+    }
+    return NDArray<T>(shape_, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator/(T value) {
+    std::vector<T> new_data(size_);
+    for (int i = 0; i < size_; i++) {
+        new_data[i] = data[i] / value;
     }
     return NDArray<T>(shape_, new_data);
 }
