@@ -68,6 +68,8 @@ class NDArray {
         std::string str(int index) const;
         void random();
         void random(T min, T max);
+        NDArray<T> transpose();
+        NDArray<T> flatten();
 
     private:
         std::vector<T> data;
@@ -502,6 +504,27 @@ void NDArray<T>::copy(NDArray<T> &other) {
         throw "Size mismatch";
     }
     data = other.data;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::flatten() {
+    NDArray<T> result({size_});
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = data[i];
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::transpose() {
+    // reverse the shape
+    std::vector<int> new_shape = shape_;
+    std::reverse(new_shape.begin(), new_shape.end());
+    NDArray<T> result(new_shape);
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = data[i];
+    }
+    return result;
 }
 
 template <typename T>
