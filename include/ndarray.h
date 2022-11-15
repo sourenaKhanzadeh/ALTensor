@@ -36,6 +36,9 @@ class NDArray {
         // tensor product of two arrays
         NDArray<T> matMult(const NDArray<T>& arr);
 
+        // tensor product of two arrays
+        NDArray<T> tensProd(const NDArray<T>& arr);
+
         // expand the array by one dimension
         NDArray<T> expandDims(int axis);
 
@@ -208,6 +211,33 @@ NDArray<T> NDArray<T>::matMult(const NDArray<T>& arr) {
         }
     }
     return NDArray<T>(new_shape, new_data);
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::tensProd(const NDArray<T>& arr) {
+    // Tensor product
+    // recursively call the function
+    if (rank_ == 1) {
+        std::vector<int> new_shape = {shape_[0], arr.shape_[0]};
+        std::vector<T> new_data(new_shape[0] * new_shape[1]);
+        for (int i = 0; i < new_shape[0]; i++) {
+            for (int j = 0; j < new_shape[1]; j++) {
+                new_data[i * new_shape[1] + j] = data[i] * arr.data[j];
+            }
+        }
+        return NDArray<T>(new_shape, new_data);
+    }
+    else {
+        std::vector<int> new_shape = {shape_[0], arr.shape_[0]};
+        std::vector<T> new_data(new_shape[0] * new_shape[1]);
+        NDArray<T> temp = (*this)[0].tensProd(arr[0]);
+        for (int i = 0; i < new_shape[0]; i++) {
+            for (int j = 0; j < new_shape[1]; j++) {
+                temp = (*this)[i].tensProd(arr[j]);
+            }
+        }
+        return temp;
+    }
 }
 
 template <typename T>
