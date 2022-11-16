@@ -96,6 +96,12 @@ class NDArray {
 
         NDArray<T> flatten();
         std::vector<T> toVector();
+        NDArray<T> round();
+        NDArray<T> abs();
+        NDArray<T> exp();
+        NDArray<T> pow(int power);
+        NDArray<T> sum(int axis);
+        NDArray<T> inv();
 
         T dot(NDArray<T> &other);
         T sum();
@@ -688,13 +694,78 @@ T NDArray<T>::sum() {
     return sum;
 }
 
+template <typename T>
+NDArray<T> NDArray<T>::round() {
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = std::round(data[i]);
+    }
+    return result;
+}
 
-std::string read_shape(std::vector<int> array) {
+template <typename T>
+NDArray<T> NDArray<T>::abs() {
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = std::abs(data[i]);
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::exp() {
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = std::exp(data[i]);
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::pow(int exponent) {
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = std::pow(data[i], exponent);
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::sum(int axis) {
+    if (axis >= rank_) {
+        throw std::out_of_range("Axis out of range");
+    }
+    NDArray<T> result = *this;
+    result.shape_.erase(result.shape_.begin() + axis);
+    result.strides_.erase(result.strides_.begin() + axis);
+    result.rank_--;
+    result.size_ = result.size_ / shape_[axis];
+    for (int i = 0; i < result.size_; i++) {
+        result.data[i] = 0;
+    }
+    for (int i = 0; i < size_; i++) {
+        int index = i / strides_[axis] % shape_[axis];
+        result.data[i / strides_[axis + 1]] += data[i];
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::inv(){
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = 1 / data[i];
+    }
+    return result;
+}
+
+template <typename T>
+std::string read_shape(NDArray<T> array) {
     std::stringstream os;
     os << "[";
-    for (int i = 0; i < array.size(); i++) {
-        os << array[i];
-        if (i != array.size() - 1) {
+    for (int i = 0; i < array.shape().size(); i++) {
+        os << array.shape()[i];
+        if (i != array.shape().size() - 1) {
             os << ", ";
         }
     }
