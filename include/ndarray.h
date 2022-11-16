@@ -4,10 +4,12 @@
 #include <vector>
 #include <sstream>
 #include <random>
+#include <iostream>
 
 template <typename T>
 class NDArray {
     public:
+        NDArray() = default;
         NDArray(std::vector<int> shape);
         NDArray(std::vector<int> shape, std::vector<T> data);
         ~NDArray();
@@ -37,11 +39,15 @@ class NDArray {
         // subtract two arrays
         NDArray<T> operator-(const NDArray<T>& arr);
 
+        NDArray<T> operator-= (const NDArray<T>& arr);
+
+        NDArray<T> operator-= (const T scalar);
+
         // multiply two arrays
         NDArray<T> operator*(const NDArray<T>& arr);
 
         // multiply scalar
-        NDArray<T> operator*(const T scalar);
+        NDArray<T> operator*(T scalar);
 
         // tensor product of two arrays
         NDArray<T> matMult(const NDArray<T>& arr);
@@ -84,9 +90,14 @@ class NDArray {
         std::string str(int index) const;
         void random();
         void random(T min, T max);
-        void transpose();
+        NDArray<T> transpose();
+        NDArray<T> transpose(int dim1, int dim2);
+
         void flatten();
         std::vector<T> toVector();
+
+        T dot(NDArray<T> &other);
+        T sum();
 
     private:
         std::vector<T> data;
@@ -125,8 +136,9 @@ NDArray<T>::NDArray(std::vector<int> shape, std::vector<T> data) {
     }
     size_ *= shape_[0];
     this->data = data;
-    
+
 }
+    
 
 template <typename T>
 NDArray<T>::~NDArray() {
@@ -208,6 +220,27 @@ NDArray<T> NDArray<T>::operator-(const T scalar) {
 }
 
 template <typename T>
+NDArray<T> NDArray<T>::operator-= (const NDArray<T>& arr) {
+    // check if the shapes are the same
+    if (shape_ != arr.shape_) {
+        throw std::invalid_argument("Shapes are not the same");
+    }
+    for (int i = 0; i < size_; i++) {
+        data[i] -= arr.data[i];
+    }
+    return *this;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::operator-= (const T scalar) {
+    for (int i = 0; i < size_; i++) {
+        data[i] -= scalar;
+    }
+    return *this;
+}
+
+
+template <typename T>
 NDArray<T> NDArray<T>::operator*(const NDArray<T>& arr) {
     // check if the shapes are the same
     if (shape_ != arr.shape_) {
@@ -234,13 +267,14 @@ NDArray<T> NDArray<T>::operator/(const NDArray<T>& arr) {
 }
 
 template <typename T>
-NDArray<T> NDArray<T>::operator*(const T value) {
+NDArray<T> NDArray<T>::operator*(T value) {
     std::vector<T> new_data(size_);
     for (int i = 0; i < size_; i++) {
         new_data[i] = data[i] * value;
     }
     return NDArray<T>(shape_, new_data);
 }
+
 
 template <typename T>
 NDArray<T> NDArray<T>::operator/(T value) {
@@ -575,11 +609,26 @@ void NDArray<T>::flatten() {
 }
 
 template <typename T>
-void NDArray<T>::transpose() {
-    // reverse the shape and strides
-    std::reverse(shape_.begin(), shape_.end());
-    std::reverse(strides_.begin(), strides_.end());
+NDArray<T> NDArray<T>::transpose() {
+    // 2d transpose
+    if (rank_ != 2) {
+        throw "Transpose only works on 2d arrays";
+    }
+    NDArray<T> result = NDArray<T>({shape_[1], shape_[0]});
+    for (int i = 0; i < shape_[0]; i++) {
+        for (int j = 0; j < shape_[1]; j++) {
+            result.data[j * shape_[0] + i] = data[i * shape_[1] + j];
+        }
+    }
+    return result;
+}
 
+template <typename T>
+NDArray<T> NDArray<T>::transpose(int dim1, int dim2) {
+    NDArray<T> result = *this;
+    std::swap(result.shape_[dim1], result.shape_[dim2]);
+    std::swap(result.strides_[dim1], result.strides_[dim2]);
+    return result;
 }
 
 template <typename T>
@@ -607,6 +656,27 @@ void NDArray<T>::random(T min, T max) {
 template <typename T>
 std::vector<T> NDArray<T>::toVector() {
     return data;
+}
+
+template <typename T>
+T NDArray<T>::dot(NDArray<T> &other) {
+    if (size_ != other.size_) {
+        throw std::out_of_range("Size mismatch");
+    }
+    T sum = 0;
+    for (int i = 0; i < size_; i++) {
+        sum += data[i] * other.data[i];
+    }
+    return sum;
+}
+
+template <typename T>
+T NDArray<T>::sum() {
+    T sum = 0;
+    for (int i = 0; i < size_; i++) {
+        sum += data[i];
+    }
+    return sum;
 }
 
 template <typename T>
