@@ -49,7 +49,7 @@ template<typename T>
 LinearRegression<T>::LinearRegression(ndarray<T> x, ndarray<T> y) {
     this->x = x;
     this->y = y;
-    this->w = ndarray<T>({x.shape()[0], 1});
+    this->w = ndarray<T>({x.shape()[1], 1});
     this->b = ndarray<T>({1, 1});
     this->w.random(-1, 1);
     this->b.random(-1, 1);
@@ -61,7 +61,7 @@ LinearRegression<T>::LinearRegression(ndarray<T> x, ndarray<T> y) {
 
 template<typename T>
 ndarray<T> LinearRegression<T>::predict(ndarray<T> x) {
-    return  this->b + x.dot(this->w);
+    return x.matMult(this->w) + this->b.flatten()[0];
 }
 
 template<typename T>
@@ -99,11 +99,16 @@ void LinearRegression<T>::fit(int epochs) {
 template<typename T>
 void LinearRegression<T>::fit() {
     for (int i = 0; i < this->epochs; i++) {
-        std::cout << "Epoch: " << i << std::endl;
-        this->updateWeights();
-        this->updateBias();
+        // flush the buffer
+        std::cout << std::flush;
+        //clear terminal
+        std::cout << "\033[2J\033[1;1H";
         this->updateLoss();
         this->updateLossDerivative();
+        this->updateWeights();
+        this->updateBias();
+        // make progrress bar
+        std::cout << "Epoch: " << i << "/" << this->epochs << std::endl;
     }
 }
 
@@ -157,11 +162,11 @@ ndarray<T> LinearRegression<T>::predict() {
     return this->predict(this->x);
 }
 
+
 template<typename T>
 void LinearRegression<T>::updateWeights() {
-    std::cout << this->x.transpose() << std::endl;
-    std::cout << this->loss_derivative << std::endl;
-    this->w = this->w - this->lr * this->x.transpose().dot(this->loss_derivative);
+    ndarray<T> dw = this->x.transpose().matMult(this->loss_derivative);
+    this->w -= dw * this->lr;
 }
 
 template<typename T>

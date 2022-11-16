@@ -15,6 +15,7 @@ class NDArray {
         ~NDArray();
         const T& operator[](const std::vector<int> index) const;
         NDArray<T> operator[](int index) const;
+        T operator[](int index);
         // print the array
         friend std::ostream& operator<<(std::ostream& os, const NDArray<T>& arr) {
             os << arr.str(0);
@@ -93,7 +94,7 @@ class NDArray {
         NDArray<T> transpose();
         NDArray<T> transpose(int dim1, int dim2);
 
-        void flatten();
+        NDArray<T> flatten();
         std::vector<T> toVector();
 
         T dot(NDArray<T> &other);
@@ -162,6 +163,12 @@ NDArray<T> NDArray<T>::operator[](int index) const{
     std::vector<int> new_shape(shape_.begin() + 1, shape_.end());
     std::vector<T> new_data(data.begin() + index * strides_[0], data.begin() + (index + 1) * strides_[0]);
     return NDArray<T>(new_shape, new_data);
+}
+
+template <typename T>
+T NDArray<T>::operator[](int index) {
+    // return the element at the given index
+    return data[index];
 }
 
 template <typename T>
@@ -602,10 +609,12 @@ void NDArray<T>::copy(NDArray<T> &other) {
 }
 
 template <typename T>
-void NDArray<T>::flatten() {
-    rank_ = 1;
-    shape_ = {size_};
-    strides_ = {1};
+NDArray<T> NDArray<T>::flatten() {
+    NDArray<T> result({size_});
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = data[i];
+    }
+    return result;
 }
 
 template <typename T>
@@ -677,6 +686,20 @@ T NDArray<T>::sum() {
         sum += data[i];
     }
     return sum;
+}
+
+
+std::string read_shape(std::vector<int> array) {
+    std::stringstream os;
+    os << "[";
+    for (int i = 0; i < array.size(); i++) {
+        os << array[i];
+        if (i != array.size() - 1) {
+            os << ", ";
+        }
+    }
+    os << "]";
+    return os.str();
 }
 
 template <typename T>

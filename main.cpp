@@ -5,8 +5,8 @@
 
 int main() {
 
-    ndarray<float> x({2, 100});
-    ndarray<float> y({2, 100});
+    ndarray<float> x({100, 2});
+    ndarray<float> y({100, 1});
 
     x.random();
     y.random();
@@ -17,7 +17,7 @@ int main() {
 
     std::cout << lr.getWeights() << std::endl;
     std::cout << lr.getBias() << std::endl;
-    
+
 
 
     return 0;
