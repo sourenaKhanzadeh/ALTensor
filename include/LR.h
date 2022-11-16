@@ -218,6 +218,8 @@ public:
     ndarray<T> predict();
     ndarray<T> sigmoid(ndarray<T> x);
     float accuracy();
+    float accuracy(ndarray<T> x, ndarray<T> y);
+
 private:
     ndarray<T> x;
     ndarray<T> y;
@@ -339,12 +341,12 @@ ndarray<T> LogisticRegression<T>::predict() {
 
 template<typename T>
 float LogisticRegression<T>::accuracy() {
-    ndarray<T> y_pred = this->predict();
-    ndarray<T> y_pred_rounded = y_pred.round();
-    ndarray<T> y_pred_rounded_minus_y = y_pred_rounded - this->y;
-    ndarray<T> y_pred_rounded_minus_y_abs = y_pred_rounded_minus_y.abs();
-    ndarray<T> y_pred_rounded_minus_y_abs_sum = y_pred_rounded_minus_y_abs.sum(0);
-    return 1 - (float)y_pred_rounded_minus_y_abs_sum[0] / y_pred_rounded_minus_y_abs.shape()[0];
+    return this->accuracy(this->x, this->y);
+}
+
+template<typename T>
+float LogisticRegression<T>::accuracy(ndarray<T> x, ndarray<T> y) {
+    return this->predict(x).round().eq(y).sum() / x.shape()[0];
 }
 
 template<typename T>
@@ -396,10 +398,7 @@ ndarray<T> LogisticRegression<T>::predict(ndarray<T> x) {
 
 template<typename T>
 ndarray<T> LogisticRegression<T>::sigmoid(ndarray<T> x) {
-    ndarray<T> x_exp = x.exp();
-    ndarray<T> x_exp_plus_1 = x_exp + 1;
-    ndarray<T> x_exp_plus_1_inv = x_exp_plus_1.inv();
-    return x_exp_plus_1_inv;
+    return ((x * -1).exp() + 1).inv();
 }
 
 

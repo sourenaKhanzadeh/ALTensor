@@ -5,11 +5,12 @@
 
 int main() {
 
-    ndarray<float> x({10, 1});
-    ndarray<float> y({10, 1});
+    ndarray<float> x({2000, 1});
+    ndarray<float> y({2000, 1});
     ndarray<float> theta({200, 1});
+    ndarray<float> theta2({200, 1});
 
-    for(int i=0; i<10; i++) {
+    for(int i=0; i<2000; i++) {
         if(i % 2 == 0) {
             x.set({i, 0},i);
             y.set({i, 0} , 1);
@@ -22,6 +23,7 @@ int main() {
     for (int i = 0; i < 200; i++)
     {
         theta.set({i, 0}, i * 2);
+        theta2.set({i, 0}, 1);
     }
     
 
@@ -33,12 +35,8 @@ int main() {
     std::cout << lr.getWeights() << std::endl;
     std::cout << lr.getBias() << std::endl;
 
-    std::cout << lr.predict(x).flatten() << std::endl;
-    std::cout << y.flatten() << std::endl;
-
-    std::cout <<  "Accuracy: "<< lr.accuracy() << std::endl;
-    
-    std::cout << "predict(10): " << lr.predict(theta) << std::endl;
+    std::cout <<  "Train Accuracy: "<< lr.accuracy() << std::endl;
+    std::cout <<  "Test Accuracy: "<< lr.accuracy(theta, theta2) << std::endl;
 
     return 0;
 }

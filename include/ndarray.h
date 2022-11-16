@@ -44,6 +44,8 @@ class NDArray {
 
         NDArray<T> operator-= (const T scalar);
 
+        bool operator== (const NDArray<T>& arr);
+
         // multiply two arrays
         NDArray<T> operator*(const NDArray<T>& arr);
 
@@ -102,6 +104,7 @@ class NDArray {
         NDArray<T> pow(int power);
         NDArray<T> sum(int axis);
         NDArray<T> inv();
+        NDArray<T> eq(NDArray<T> &y);
 
         T dot(NDArray<T> &other);
         T sum();
@@ -187,6 +190,18 @@ NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
     return *this;
 }
 
+template <typename T>
+bool NDArray<T>::operator==(const NDArray<T>& arr) {
+    if (this->shape_ != arr.shape_) {
+        return false;
+    }
+    for (int i = 0; i < this->size_; i++) {
+        if (this->data[i] != arr.data[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 template <typename T>
 NDArray<T> NDArray<T>::operator+(const NDArray<T>& arr) {
@@ -755,6 +770,18 @@ NDArray<T> NDArray<T>::inv(){
     NDArray<T> result = *this;
     for (int i = 0; i < size_; i++) {
         result.data[i] = 1 / data[i];
+    }
+    return result;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::eq(NDArray<T> &other) {
+    if (size_ != other.size_) {
+        throw std::out_of_range("Size mismatch");
+    }
+    NDArray<T> result = *this;
+    for (int i = 0; i < size_; i++) {
+        result.data[i] = data[i] == other.data[i];
     }
     return result;
 }
