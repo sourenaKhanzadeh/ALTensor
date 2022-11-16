@@ -4,6 +4,7 @@
 
 #include <ndarray.h>
 #include <iostream>
+#include <math.h>
 
 
 template<typename T>
@@ -29,6 +30,7 @@ public:
     ndarray<T> getLoss();
     ndarray<T> getLossDerivative();
     ndarray<T> predict();
+    float MSE();
 
 private:
     ndarray<T> x;
@@ -184,6 +186,11 @@ void LinearRegression<T>::updateLossDerivative() {
     this->loss_derivative = this->loss;
 }
 
+
+template<typename T>
+float LinearRegression<T>::MSE() {
+    return (this->loss * this->loss).sum() / this->loss.shape()[0];
+}
 
 
 
