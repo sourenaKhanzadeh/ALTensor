@@ -5,12 +5,12 @@
 
 int main() {
 
-    ndarray<float> x({2000, 1});
-    ndarray<float> y({2000, 1});
-    ndarray<float> theta({200, 1});
-    ndarray<float> theta2({200, 1});
+    ndarray<float> x({1600, 1});
+    ndarray<float> y({1600, 1});
+    ndarray<float> theta({400, 1});
+    ndarray<float> theta2({400, 1});
 
-    for(int i=0; i<2000; i++) {
+    for(int i=0; i<1600; i++) {
         if(i % 2 == 0) {
             x.set({i, 0},i);
             y.set({i, 0} , 1);
@@ -20,7 +20,7 @@ int main() {
         }
     }
 
-    for (int i = 0; i < 200; i++)
+    for (int i = 0; i < 400; i++)
     {
         theta.set({i, 0}, i * 2);
         theta2.set({i, 0}, 1);
