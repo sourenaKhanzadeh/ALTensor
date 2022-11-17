@@ -329,18 +329,36 @@ NDArray<T> NDArray<T>::matMult(const NDArray<T>& arr) {
     if (shape_[1] != arr.shape_[0]) {
         throw std::invalid_argument("Shapes are not compatible");
     }
-    std::vector<int> new_shape = {shape_[0], arr.shape_[1]};
-    std::vector<T> new_data(new_shape[0] * new_shape[1]);
-    for (int i = 0; i < new_shape[0]; i++) {
-        for (int j = 0; j < new_shape[1]; j++) {
+    // std::vector<int> new_shape = {shape_[0], arr.shape_[1]};
+    // std::vector<T> new_data(new_shape[0] * new_shape[1]);
+    // for (int i = 0; i < new_shape[0]; i++) {
+    //     for (int j = 0; j < new_shape[1]; j++) {
+    //         T sum = 0;
+    //         for (int k = 0; k < shape_[1]; k++) {
+    //             sum += (*this)[{i, k}] * arr[{k, j}];
+    //         }
+    //         new_data[i * new_shape[1] + j] = sum;
+    //     }
+    // }
+
+    // cahche the data
+    T* data1 = &data[0];
+    T* data2 = (T*)&(arr.data)[0];
+    int m = shape_[0];
+    int n = arr.shape_[1];
+    int k = shape_[1];
+    std::vector<T> new_data(m * n);
+    T* new_data_ptr = new_data.data();
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
             T sum = 0;
-            for (int k = 0; k < shape_[1]; k++) {
-                sum += (*this)[{i, k}] * arr[{k, j}];
+            for (int l = 0; l < k; l++) {
+                sum += data1[i * k + l] * data2[l * n + j];
             }
-            new_data[i * new_shape[1] + j] = sum;
+            new_data_ptr[i * n + j] = sum;
         }
     }
-    return NDArray<T>(new_shape, new_data);
+    return NDArray<T>({m, n}, new_data);
 }
 
 template <typename T>
